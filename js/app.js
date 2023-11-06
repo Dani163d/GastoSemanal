@@ -22,10 +22,10 @@ function eventListeners() {
 function preguntarPresupuesto() {
     const presupuestoUsuario = prompt('¿cual es tu presupuesto?');
 
-    console.log(presupuestoUsuario);
+    console.log(Number(presupuestoUsuario));
 
 
-    if(presupuestoUsuario === '' || presupuestoUsuario === null) {
+    if(presupuestoUsuario === '' || presupuestoUsuario === null || isNaN(presupuestoUsuario) || presupuestoUsuario <= 0) {
         window.location.reload()
     }
 }
