@@ -2,20 +2,13 @@
 const formulario = document.querySelector('#agregar-gasto');
 const gastoListado = document.querySelector("#gastos ul");
 
-
 // Eventos
 eventListeners();
 function eventListeners() {
     document.addEventListener('DOMContentLoaded', preguntarPresupuesto);
 
-
     formulario.addEventListener('submit', agregarGasto);
-
 }
-
-
-
-
 
 // Clases
 class Presupuesto {
@@ -27,7 +20,13 @@ class Presupuesto {
 
     nuevoGasto(gasto) {
         this.gastos = [...this.gastos, gasto]
-        console.log(this.gastos);
+        this.calcularRestante();
+    }
+
+    calcularRestante() {
+        const gastado = this.gastos.reduce( (total, gasto) => total + gasto.cantidad, 0 );
+        this.restante = this.presupuesto - gastado;
+
     }
 
 }
@@ -66,7 +65,6 @@ class UI {
    }
     
    agregarGastoListado(gastos) {
-    
     this.limpiarHTML() // eliminar el HTML previo
 
     // iterar sobre los gastos
@@ -102,28 +100,46 @@ class UI {
         }
     }
 
+    actualizarRestante(restante) {
+        document.querySelector('#restante').textContent = restante;
+    }
+
+    comprobarPresupuesto(presupuestObj) {
+        const { presupuesto, restante } = presupuestObj;
+
+        const restanteDiv = document.querySelector('.restante');
+
+        // comprobar 25%
+        if ( ( presupuesto / 4 ) > restante ) {
+            restanteDiv.classList.remove('alert-success', 'alert-worning');
+            restanteDiv.classList.add('alert-danger')
+        } else if ( ( presupuesto / 2 )> restante ) {
+            restanteDiv.classList.remove('alert-success');
+            restanteDiv.classList.add('alert-warning')
+        }
+
+        // si el total es 0 o menor
+        if ( restante <= 0 ) {
+            ui.imprimirAlerta('El presupuesto se a agotado', 'error')
+
+            formulario.querySelector('button[type="submit"]').disabled = true;
+        }
+    }
+
    };
-
-
 
 // instanciar
 const ui = new UI();
 let presupuesto;
-
-
 
 // Funciones
 
 function preguntarPresupuesto() {
     const presupuestoUsuario = prompt('¿cual es tu presupuesto?');
 
-    // console.log(Number(presupuestoUsuario));
-
-
     if(presupuestoUsuario === '' || presupuestoUsuario === null || isNaN(presupuestoUsuario) || presupuestoUsuario <= 0) {
         window.location.reload()
     }
-
 
         // presupuesto valido
         presupuesto = new Presupuesto(presupuestoUsuario);
@@ -135,7 +151,6 @@ function preguntarPresupuesto() {
 // agragar gastos
 function agregarGasto(e) {
     e.preventDefault();
-
 
     // leer los datos del formulario
     const nombre = document.querySelector('#gasto').value
@@ -162,8 +177,12 @@ function agregarGasto(e) {
     ui.imprimirAlerta('Gasto agregado correctamente')
 
     // imprimir los gastos
-    const { gastos } = presupuesto;
+    const { gastos, restante  } = presupuesto;
     ui.agregarGastoListado(gastos);
+
+    ui.actualizarRestante(restante);
+
+    ui.comprobarPresupuesto(presupuesto)
 
     // reiniciar el formulario
     formulario.reset();
